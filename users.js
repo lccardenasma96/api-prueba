@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const db = require('./db');
+const { pool } = require('./db');
 
-router.get('/', (req, res) => {
-  db.all('SELECT * FROM users', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.get('/', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM users');
     res.json(rows);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

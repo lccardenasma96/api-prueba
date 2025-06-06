@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: qa-users-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - fromDatabase:
+          name: qa-users-db
+          property: connectionString
+          key: DATABASE_URL
+  
