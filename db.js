@@ -1,26 +1,19 @@
-const { Pool } = require('pg');
 require('dotenv').config();
+const { Pool } = require('pg');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 async function initDB() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL
-    );
-  `);
-
-  const { rows } = await pool.query('SELECT COUNT(*) FROM users');
-  if (parseInt(rows[0].count) === 0) {
-    await pool.query(`
-      INSERT INTO users (name, email)
-      VALUES ('Alice', 'alice@example.com'), ('Bob', 'bob@example.com');
-    `);
+  try {
+    await pool.query('SELECT NOW()');
+    console.log('Database connected');
+  } catch (err) {
+    console.error('Failed to initialize DB', err);
   }
 }
 
