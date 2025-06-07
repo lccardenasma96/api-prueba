@@ -1,14 +1,12 @@
 const express = require('express');
-const { initDB } = require('./db');
-const usersRouter = require('./users');
-
 const app = express();
-const PORT = 3000;
+const usersRoutes = require('./users'); // Asegúrate que el path esté bien
+const PORT = process.env.PORT || 3000;
 
-initDB().then(() => {
-  app.use('/users', usersRouter);
+app.use(express.json()); // Esto es necesario para leer req.body
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+app.use('/', usersRoutes); // Usa el prefijo correcto
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
