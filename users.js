@@ -96,6 +96,25 @@ router.get('/favorites', authenticateToken, async (req, res) => {
   }
 });
 
+router.get('/favoritesall', authenticateToken, async (req, res) => {
+  const userId = req.user.id; // Obtenemos el ID del usuario autenticado
+
+  try {
+    const result = await pool.query(`
+      SELECT p.id, p.name, p.description, p.location
+      FROM favorite_places fp
+      JOIN places p ON fp.place_id = p.id
+      WHERE fp.user_id = $1
+    `, [userId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error al obtener favoritos:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
 // --------------- Visitados ---------------
 router.post('/visited', authenticateToken, async (req, res) => {
   const { place_id } = req.body;
