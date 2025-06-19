@@ -168,6 +168,71 @@ router.post('/ratings', authenticateToken, async (req, res) => {
   }
 });
 
+// --------------- Agregar nuevo lugar con eventos ---------------
+router.post('/places', async (req, res) => {
+  const { name, description, location, image, events } = req.body;
+
+  if (!name || !description || !location || !image) {
+    return res.status(400).json({ error: 'name, description, location, and image are required' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Insertar lugar
+    const placeResult = await client.query(
+      'INSERT INTO places (name, description, location, image) VALUES ($1, $2, $3, $4) RETURNING id, name, description, location, image',
+      [name, description, location, image]
+    );
+
+    const place = placeResult.rows[0];
+
+    // Insertar eventos si existen
+    if (Array.isArray(events)) {
+      for (const event of events) {
+        const { name: eventName, date, info } = event;
+        if (!eventName || !date) continue;
+
+        await client.query(
+          `INSERT INTO place_events (place_id, name, event_date, info) 
+           VALUES ($1, $2, $3, $4)`,
+          [place.id, eventName, date, info || null]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
+    res.status(201).json({ message: 'Place and events added', place });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error adding place and events:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    client.release();
+  }
+});
+router.get('/places/:id/events', async (req, res) => {
+  const placeId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      `SELECT id, name, event_date, info, created_at
+       FROM place_events
+       WHERE place_id = $1
+       ORDER BY event_date ASC`,
+      [placeId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching place events:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.get('/places', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM places');
