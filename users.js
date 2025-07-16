@@ -6,10 +6,9 @@ const router = express.Router();
 const { pool } = require('./db');
 const authenticateToken = require('./auth');
 
-router.use(express.json());
 
 // --------------- Registro de Usuarios ---------------
-router.post('/users', async (req, res) => {
+router.post('/', async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email, and password are required' });
@@ -239,7 +238,7 @@ router.get('/places', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error('Error al obtener los lugares:', err);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -258,5 +257,7 @@ router.get('/ratings/:place_id', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
+router.get('/', (req, res) => {
+  res.send('API funcionando correctamente');
+});
 module.exports = router;

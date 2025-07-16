@@ -1,11 +1,20 @@
+require('dotenv').config(); // 👈 Necesario para leer el .env
+
 const express = require('express');
 const app = express();
-const usersRoutes = require('./users'); // Asegúrate que el path esté bien
+const usersRoutes = require('./users'); // ✅ Asegúrate de que el archivo users.js exporte un router
+const cors = require('cors');
+const { initDB } = require('./db');
+
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json()); // Esto es necesario para leer req.body
+app.use(cors());
+app.use(express.json());
 
-app.use('/', usersRoutes); // Usa el prefijo correcto
+// ✅ Usa el prefijo '/users' para que coincida con la ruta que usas en Postman
+app.use('/users', usersRoutes);
+
+initDB();
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
