@@ -5,10 +5,11 @@ const useSSL = process.env.DATABASE_URL?.includes('render.com') || process.env.N
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: useSSL
-    ? { require: true, rejectUnauthorized: false }
-    : undefined
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+
 
 async function initDB() {
   try {
@@ -17,6 +18,7 @@ async function initDB() {
   } catch (err) {
     console.error('❌ Failed to initialize DB', err);
   }
+  console.log("📡 Conectando a:", process.env.DATABASE_URL);
 }
 
 module.exports = { pool, initDB };

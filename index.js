@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // ✅ Usa el prefijo '/users' para que coincida con la ruta que usas en Postman
-app.use('/users', usersRoutes);
+app.use('/', usersRoutes);
 
 initDB();
 
