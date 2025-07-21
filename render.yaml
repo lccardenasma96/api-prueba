@@ -9,7 +9,7 @@ services:
       - key: NODE_ENV
         value: production
       - fromDatabase:
-          name: qa-users-db
+          name:qa-users-db
           property: connectionString
           key: DATABASE_URL
   

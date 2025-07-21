@@ -1,15 +1,16 @@
-require('dotenv').config();
 const { Pool } = require('pg');
 
 const useSSL = process.env.DATABASE_URL?.includes('render.com') || process.env.NODE_ENV === 'production';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ...(useSSL && {
+    ssl: {
+      require: true, 
+      rejectUnauthorized: false
+    }
+  })
 });
-
 
 async function initDB() {
   try {
