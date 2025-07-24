@@ -6,7 +6,7 @@ const usersRoutes = require('./users'); // ✅ Asegúrate de que el archivo user
 const cors = require('cors');
 const { initDB } = require('./db');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ?? 3000;
 
 app.use(cors());
 app.use(express.json());
