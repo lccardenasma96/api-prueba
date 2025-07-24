@@ -9,16 +9,21 @@ const authenticateToken = require('./auth');
 
 // --------------- Registro de Usuarios ---------------
 router.post('/', async (req, res) => {
+  console.log('POST recibido en /', req.body);
   const { name, email, password } = req.body;
+  console.log('Datos:', name, email, password);
   if (!name || !email || !password) {
+    console.log('Faltan datos');
     return res.status(400).json({ error: 'Name, email, and password are required' });
   }
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('Password hasheado');
     const result = await pool.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
       [name, email, hashedPassword]
     );
+    console.log('Usuario insertado:', result.rows[0]);
     const user = result.rows[0];
     const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '1h' });
     res.json({ user, token });
