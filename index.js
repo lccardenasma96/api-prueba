@@ -1,23 +1,22 @@
-require('dotenv').config(); // 👈 Necesario para leer el .env
+require('dotenv').config();
 
 const express = require('express');
 const app = express();
-const usersRoutes = require('./users'); // ✅ Asegúrate de que el archivo users.js exporte un router
+const usersRoutes = require('./users');
 const cors = require('cors');
 const { initDB } = require('./db');
 
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT;
+if (!PORT) throw new Error('❌ La variable PORT no está definida');
 
 app.use(cors());
 app.use(express.json());
-
-// ✅ Usa el prefijo '/users' para que coincida con la ruta que usas en Postman
 app.use('/users', usersRoutes);
 
 initDB();
 
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
-  
+  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
+
 console.log("🌐 DATABASE_URL:", process.env.DATABASE_URL);
