@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
     );
     console.log('Usuario insertado:', result.rows[0]);
     const user = result.rows[0];
-    const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, SECRET, { expiresIn: '1h' });
     res.json({ user, token });
   } catch (err) {
     if (err.code === '23505') {
@@ -49,8 +49,7 @@ router.post('/login', async (req, res) => {
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-
-    const token = jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, SECRET, { expiresIn: '1h' });
     res.json({ user: { id: user.id, name: user.name, email: user.email }, token });
   } catch (err) {
     console.error('Login error:', err);
