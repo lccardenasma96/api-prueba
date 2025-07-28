@@ -68,55 +68,61 @@ router.get('/profile', authenticateToken, async (req, res) => {
 });
 
 // --------------- Favoritos ---------------
-router.post('/favorites', authenticateToken, async (req, res) => {
-  const { place_id } = req.body;
-  if (!place_id) return res.status(400).json({ error: 'place_id is required' });
+router.post('/favorite-events', authenticateToken, async (req, res) => {
+  const { event_id } = req.body;
+
+  if (!event_id) {
+    return res.status(400).json({ error: 'event_id es requerido' });
+  }
 
   try {
     await pool.query(
-      'INSERT INTO favorite_places (user_id, place_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-      [req.user.id, place_id]
+      `INSERT INTO favorite_events (user_id, event_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id, event_id) DO NOTHING`,
+      [req.user.id, event_id]
     );
-    res.json({ message: 'Place added to favorites' });
+
+    res.status(201).json({ message: 'Evento agregado a favoritos' });
   } catch (err) {
-    console.error('Error adding favorite:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-router.get('/favorites', authenticateToken, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT p.id, p.name, p.description, p.location
-      FROM favorite_places f
-      JOIN places p ON f.place_id = p.id
-      WHERE f.user_id = $1
-    `, [req.user.id]);
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching favorites:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-router.get('/favoritesall', authenticateToken, async (req, res) => {
-  const userId = req.user.id; // Obtenemos el ID del usuario autenticado
-
-  try {
-    const result = await pool.query(`
-      SELECT p.id, p.name, p.description, p.location
-      FROM favorite_places fp
-      JOIN places p ON fp.place_id = p.id
-      WHERE fp.user_id = $1
-    `, [userId]);
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error al obtener favoritos:', err);
+    console.error('Error al agregar favorito de evento:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
+// ✅ Obtener eventos favoritos del usuario autenticado
+router.get('/favorite-events', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT e.id, e.title, e.description, e.start_date, e.end_date, e.image, e.location
+      FROM favorite_events f
+      JOIN events e ON f.event_id = e.id
+      WHERE f.user_id = $1
+    `, [req.user.id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error al obtener eventos favoritos:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ✅ Eliminar un evento de favoritos
+router.delete('/favorite-events/:event_id', authenticateToken, async (req, res) => {
+  const { event_id } = req.params;
+
+  try {
+    await pool.query(
+      'DELETE FROM favorite_events WHERE user_id = $1 AND event_id = $2',
+      [req.user.id, event_id]
+    );
+
+    res.json({ message: 'Evento eliminado de favoritos' });
+  } catch (err) {
+    console.error('Error al eliminar evento favorito:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
 
 // --------------- Visitados ---------------
 router.post('/visited', authenticateToken, async (req, res) => {
