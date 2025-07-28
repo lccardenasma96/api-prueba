@@ -12,6 +12,7 @@ if (!PORT) throw new Error('❌ La variable PORT no está definida');
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use('/users', usersRoutes);
 app.use('/events', eventsRoutes);
 
