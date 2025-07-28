@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const usersRoutes = require('./users');
+const eventsRoutes = require('./events');
 const cors = require('cors');
 const { initDB } = require('./db');
 
@@ -12,6 +13,7 @@ if (!PORT) throw new Error('❌ La variable PORT no está definida');
 app.use(cors());
 app.use(express.json());
 app.use('/users', usersRoutes);
+app.use('/events', eventsRoutes);
 
 initDB();
 
