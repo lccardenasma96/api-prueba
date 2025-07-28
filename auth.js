@@ -4,6 +4,8 @@ const SECRET = process.env.JWT_SECRET || 'clave_secreta';
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer token
+  console.log('Authorization header:', req.headers['authorization']);
+
 
   if (!token) return res.sendStatus(401);
 

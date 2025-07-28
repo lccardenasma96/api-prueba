@@ -80,7 +80,8 @@ router.post('/favorite-events', authenticateToken, async (req, res) => {
       `INSERT INTO favorite_events (user_id, event_id)
        VALUES ($1, $2)
        ON CONFLICT (user_id, event_id) DO NOTHING`,
-      [req.user.id, event_id]
+      [req.user.id, event_id],
+      console.log('Usuario autenticado', req.user),      
     );
 
     res.status(201).json({ message: 'Evento agregado a favoritos' });
