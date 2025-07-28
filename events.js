@@ -52,3 +52,4 @@ router.post('/favorite-events', async (req, res) => {
     }
   });
   
+  module.exports = router;
