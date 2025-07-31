@@ -8,7 +8,7 @@ const authenticateToken = require('./auth');
 
 
 // --------------- Registro de Usuarios ---------------
-router.post('/', async (req, res) => {
+router.post('/register', async (req, res) => {
   console.log('POST recibido en /', req.body);
   const { name, email, password } = req.body;
   console.log('Datos:', name, email, password);
@@ -67,7 +67,95 @@ router.get('/profile', authenticateToken, async (req, res) => {
   }
 });
 
-// --------------- Favoritos ---------------
+// --------------- Verificar token ---------------
+router.get('/verify-token', authenticateToken, async (req, res) => {
+  res.json({ 
+    message: 'Token válido', 
+    user: { 
+      id: req.user.id, 
+      name: req.user.name, 
+      email: req.user.email 
+    } 
+  });
+});
+
+// --------------- Favoritos de Lugares ---------------
+router.post('/favorite-places', authenticateToken, async (req, res) => {
+  const { place_id } = req.body;
+  if (!place_id) {
+    return res.status(400).json({ error: 'place_id es requerido' });
+  }
+
+  try {
+    await pool.query(
+      `INSERT INTO favorite_places (user_id, place_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id, place_id) DO NOTHING`,
+      [req.user.id, place_id]
+    );
+
+    res.status(201).json({ message: 'Lugar agregado a favoritos' });
+  } catch (err) {
+    console.error('Error al agregar lugar favorito:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+router.get('/favorite-places', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.id, p.name, p.description, p.image, p.location, m.name as municipio_name
+      FROM favorite_places f
+      JOIN places p ON f.place_id = p.id
+      JOIN municipios m ON p.municipio_id = m.id
+      WHERE f.user_id = $1
+    `, [req.user.id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error al obtener lugares favoritos:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+router.delete('/favorite-places/:place_id', authenticateToken, async (req, res) => {
+  const { place_id } = req.params;
+
+  try {
+    await pool.query(
+      'DELETE FROM favorite_places WHERE user_id = $1 AND place_id = $2',
+      [req.user.id, place_id]
+    );
+
+    res.json({ message: 'Lugar eliminado de favoritos' });
+  } catch (err) {
+    console.error('Error al eliminar lugar favorito:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+router.get('/favorite-places/:event_id', authenticateToken, async (req, res) => {
+  const { event_id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT e.id, e.name, e.description, e.image, e.location, m.id as municipio_id
+       FROM favorite_places f
+       JOIN places e ON f.event_id = e.id
+       JOIN municipios m ON e.municipio_id = m.id
+       WHERE f.user_id = $1 AND f.event_id = $2`,
+      [req.user.id, event_id]
+    );
+
+    // Siempre devuelve un array, aunque esté vacío
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error al verificar evento favorito:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
+// --------------- Favoritos de Eventos ---------------
 router.post('/favorite-events', authenticateToken, async (req, res) => {
   const { event_id } = req.body;
 
@@ -80,8 +168,7 @@ router.post('/favorite-events', authenticateToken, async (req, res) => {
       `INSERT INTO favorite_events (user_id, event_id)
        VALUES ($1, $2)
        ON CONFLICT (user_id, event_id) DO NOTHING`,
-      [req.user.id, event_id],
-      console.log('Usuario autenticado', req.user),      
+      [req.user.id, event_id]
     );
 
     res.status(201).json({ message: 'Evento agregado a favoritos' });
@@ -91,13 +178,13 @@ router.post('/favorite-events', authenticateToken, async (req, res) => {
   }
 });
 
-// ✅ Obtener eventos favoritos del usuario autenticado
 router.get('/favorite-events', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT e.id, e.title, e.description, e.start_date, e.end_date, e.image, e.location
+      SELECT e.id, e.name, e.description, e.start_date, e.end_date, e.image, e.location, m.name as municipio_name
       FROM favorite_events f
       JOIN events e ON f.event_id = e.id
+      JOIN municipios m ON e.municipio_id = m.id
       WHERE f.user_id = $1
     `, [req.user.id]);
 
@@ -108,7 +195,6 @@ router.get('/favorite-events', authenticateToken, async (req, res) => {
   }
 });
 
-// ✅ Eliminar un evento de favoritos
 router.delete('/favorite-events/:event_id', authenticateToken, async (req, res) => {
   const { event_id } = req.params;
 
@@ -125,14 +211,37 @@ router.delete('/favorite-events/:event_id', authenticateToken, async (req, res) 
   }
 });
 
-// --------------- Visitados ---------------
+router.get('/favorite-events/:event_id', authenticateToken, async (req, res) => {
+  const { event_id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT e.id, e.name, e.description, e.image, e.start_date, e.end_date, e.location, m.name as municipio_name
+       FROM favorite_events f
+       JOIN events e ON f.event_id = e.id
+       JOIN municipios m ON e.municipio_id = m.id
+       WHERE f.user_id = $1 AND f.event_id = $2`,
+      [req.user.id, event_id]
+    );
+
+    // Siempre devuelve un array, aunque esté vacío
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error al verificar evento favorito:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
+
+// --------------- Lugares Visitados ---------------
 router.post('/visited', authenticateToken, async (req, res) => {
   const { place_id } = req.body;
   if (!place_id) return res.status(400).json({ error: 'place_id is required' });
 
   try {
     await pool.query(
-      'INSERT INTO visited_places (user_id, place_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      'INSERT INTO visited (user_id, place_id) VALUES ($1, $2) ON CONFLICT (user_id, place_id) DO NOTHING',
       [req.user.id, place_id]
     );
     res.json({ message: 'Place marked as visited' });
@@ -145,10 +254,12 @@ router.post('/visited', authenticateToken, async (req, res) => {
 router.get('/visited', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT p.id, p.name, p.description, p.location, v.visit_date
-      FROM visited_places v
+      SELECT p.id, p.name, p.description, p.location, p.image, v.visited_date, m.name as municipio_name
+      FROM visited v
       JOIN places p ON v.place_id = p.id
+      JOIN municipios m ON p.municipio_id = m.id
       WHERE v.user_id = $1
+      ORDER BY v.visited_date DESC
     `, [req.user.id]);
     res.json(result.rows);
   } catch (err) {
@@ -157,95 +268,102 @@ router.get('/visited', authenticateToken, async (req, res) => {
   }
 });
 
-// --------------- Calificaciones ---------------
-router.post('/ratings', authenticateToken, async (req, res) => {
-  const { place_id, rating, comment } = req.body;
-  if (!place_id || !rating) return res.status(400).json({ error: 'place_id and rating are required' });
-  if (rating < 1 || rating > 5) return res.status(400).json({ error: 'rating must be between 1 and 5' });
+router.delete('/visited/:place_id', authenticateToken, async (req, res) => {
+  const { place_id } = req.params;
 
   try {
-    await pool.query(`
-      INSERT INTO place_ratings (user_id, place_id, rating, comment)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (user_id, place_id)
-      DO UPDATE SET rating = $3, comment = $4, created_at = NOW()
-    `, [req.user.id, place_id, rating, comment]);
-
-    res.json({ message: 'Rating saved' });
-  } catch (err) {
-    console.error('Error saving rating:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// --------------- Agregar nuevo lugar con eventos ---------------
-router.post('/places', async (req, res) => {
-  const { name, description, location, image, events } = req.body;
-
-  if (!name || !description || !location || !image) {
-    return res.status(400).json({ error: 'name, description, location, and image are required' });
-  }
-
-  const client = await pool.connect();
-
-  try {
-    await client.query('BEGIN');
-
-    // Insertar lugar
-    const placeResult = await client.query(
-      'INSERT INTO places (name, description, location, image) VALUES ($1, $2, $3, $4) RETURNING id, name, description, location, image',
-      [name, description, location, image]
+    await pool.query(
+      'DELETE FROM visited WHERE user_id = $1 AND place_id = $2',
+      [req.user.id, place_id]
     );
 
-    const place = placeResult.rows[0];
-
-    // Insertar eventos si existen
-    if (Array.isArray(events)) {
-      for (const event of events) {
-        const { name: eventName, date, info } = event;
-        if (!eventName || !date) continue;
-
-        await client.query(
-          `INSERT INTO place_events (place_id, name, event_date, info) 
-           VALUES ($1, $2, $3, $4)`,
-          [place.id, eventName, date, info || null]
-        );
-      }
-    }
-
-    await client.query('COMMIT');
-
-    res.status(201).json({ message: 'Place and events added', place });
+    res.json({ message: 'Lugar eliminado de visitados' });
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('Error adding place and events:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  } finally {
-    client.release();
+    console.error('Error al eliminar lugar visitado:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
-router.get('/places/:id/events', async (req, res) => {
-  const placeId = req.params.id;
+
+// --------------- Calendario de Eventos ---------------
+router.post('/calendar', authenticateToken, async (req, res) => {
+  const { event_id } = req.body;
+  if (!event_id) return res.status(400).json({ error: 'event_id is required' });
+
+  try {
+    await pool.query(
+      'INSERT INTO calendar (user_id, event_id) VALUES ($1, $2) ON CONFLICT (user_id, event_id) DO NOTHING',
+      [req.user.id, event_id]
+    );
+    res.json({ message: 'Event added to calendar' });
+  } catch (err) {
+    console.error('Error adding event to calendar:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/calendar', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT e.id, e.name, e.description, e.start_date, e.end_date, e.image, e.location, m.name as municipio_name
+      FROM calendar c
+      JOIN events e ON c.event_id = e.id
+      JOIN municipios m ON e.municipio_id = m.id
+      WHERE c.user_id = $1
+      ORDER BY e.start_date ASC
+    `, [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching calendar events:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.delete('/calendar/:event_id', authenticateToken, async (req, res) => {
+  const { event_id } = req.params;
+
+  try {
+    await pool.query(
+      'DELETE FROM calendar WHERE user_id = $1 AND event_id = $2',
+      [req.user.id, event_id]
+    );
+
+    res.json({ message: 'Evento eliminado del calendario' });
+  } catch (err) {
+    console.error('Error al eliminar evento del calendario:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// --------------- Agregar nuevo lugar ---------------
+router.post('/places', async (req, res) => {
+  const { name, description, location, image, municipio_id } = req.body;
+
+  if (!name || !description || !location || !image || !municipio_id) {
+    return res.status(400).json({ error: 'name, description, location, image, and municipio_id are required' });
+  }
 
   try {
     const result = await pool.query(
-      `SELECT id, name, event_date, info, created_at
-       FROM place_events
-       WHERE place_id = $1
-       ORDER BY event_date ASC`,
-      [placeId]
+      'INSERT INTO places (name, description, location, image, municipio_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, description, location, image, municipio_id',
+      [name, description, location, image, municipio_id]
     );
 
-    res.json(result.rows);
+    const place = result.rows[0];
+    res.status(201).json({ message: 'Place added successfully', place });
   } catch (err) {
-    console.error('Error fetching place events:', err);
+    console.error('Error adding place:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 router.get('/places', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM places');
+    const result = await pool.query(`
+      SELECT p.*, m.name as municipio_name 
+      FROM places p 
+      JOIN municipios m ON p.municipio_id = m.id
+      ORDER BY p.name ASC
+    `);
     res.json(result.rows);
   } catch (err) {
     console.error('Error al obtener los lugares:', err);
@@ -253,22 +371,136 @@ router.get('/places', async (req, res) => {
   }
 });
 
-router.get('/ratings/:place_id', async (req, res) => {
-  const place_id = req.params.place_id;
+router.get('/places/:id', async (req, res) => {
+  const placeId = req.params.id;
+
   try {
     const result = await pool.query(`
-      SELECT AVG(rating)::numeric(3,2) as average_rating, COUNT(*) as total_ratings
-      FROM place_ratings
-      WHERE place_id = $1
-    `, [place_id]);
+      SELECT p.*, m.name as municipio_name 
+      FROM places p 
+      JOIN municipios m ON p.municipio_id = m.id
+      WHERE p.id = $1
+    `, [placeId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Place not found' });
+    }
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('Error fetching rating:', err);
+    console.error('Error fetching place:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// --------------- Municipios ---------------
+router.get('/municipios', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM municipios ORDER BY name ASC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error al obtener los municipios:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/municipios/:id', async (req, res) => {
+  const municipioId = req.params.id;
+
+  try {
+    const result = await pool.query('SELECT * FROM municipios WHERE id = $1', [municipioId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Municipio not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching municipio:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// --------------- Eventos ---------------
+router.get('/events', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT e.*, m.name as municipio_name 
+      FROM events e 
+      JOIN municipios m ON e.municipio_id = m.id
+      ORDER BY e.start_date ASC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error al obtener los eventos:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/events/:id', async (req, res) => {
+  const eventId = req.params.id;
+
+  try {
+    const result = await pool.query(`
+      SELECT e.*, m.name as municipio_name 
+      FROM events e 
+      JOIN municipios m ON e.municipio_id = m.id
+      WHERE e.id = $1
+    `, [eventId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching event:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// --------------- Lugares por Municipio ---------------
+router.get('/municipios/:id/places', async (req, res) => {
+  const municipioId = req.params.id;
+
+  try {
+    const result = await pool.query(`
+      SELECT p.*, m.name as municipio_name 
+      FROM places p 
+      JOIN municipios m ON p.municipio_id = m.id
+      WHERE p.municipio_id = $1
+      ORDER BY p.name ASC
+    `, [municipioId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching places by municipio:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// --------------- Eventos por Municipio ---------------
+router.get('/municipios/:id/events', async (req, res) => {
+  const municipioId = req.params.id;
+
+  try {
+    const result = await pool.query(`
+      SELECT e.*, m.name as municipio_name 
+      FROM events e 
+      JOIN municipios m ON e.municipio_id = m.id
+      WHERE e.municipio_id = $1
+      ORDER BY e.start_date ASC
+    `, [municipioId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching events by municipio:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.get('/', (req, res) => {
   res.send('API funcionando correctamente');
 });
+
 module.exports = router;
