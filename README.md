@@ -41,13 +41,13 @@ curl -X POST http://localhost:3000/api/v1/login \
 
 #### Verificar Token
 ```bash
-curl -X GET http://localhost:3000/api/users/verify-token \
+curl -X GET http://localhost:3000/api/v1/verify-token \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
 #### Obtener Perfil
 ```bash
-curl -X GET http://localhost:3000/api/users/profile \
+curl -X GET http://localhost:3000/api/v1/profile \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
@@ -124,13 +124,13 @@ curl -X POST http://localhost:3000/api/v1/favorite-places \
 
 #### Obtener Lugares Favoritos
 ```bash
-curl -X GET http://localhost:3000/api/users/favorite-places \
+curl -X GET http://localhost:3000/api/v1/favorite-places \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
 #### Eliminar Lugar de Favoritos
 ```bash
-curl -X DELETE http://localhost:3000/api/users/favorite-places/1 \
+curl -X DELETE http://localhost:3000/api/v1/favorite-places/1 \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
@@ -162,7 +162,7 @@ curl -X GET http://localhost:3000/api/v1/favorite-events \
 
 #### Marcar Lugar como Visitado
 ```bash
-curl -X POST http://localhost:3000/api/users/visited \
+curl -X POST http://localhost:3000/api/v1/visited \
   -H "Authorization: Bearer <tu_token_jwt>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -172,13 +172,13 @@ curl -X POST http://localhost:3000/api/users/visited \
 
 #### Obtener Lugares Visitados
 ```bash
-curl -X GET http://localhost:3000/api/users/visited \
+curl -X GET http://localhost:3000/api/v1/visited \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
 #### Eliminar Lugar de Visitados
 ```bash
-curl -X DELETE http://localhost:3000/api/users/visited/1 \
+curl -X DELETE http://localhost:3000/api/v1/visited/1 \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
@@ -186,7 +186,7 @@ curl -X DELETE http://localhost:3000/api/users/visited/1 \
 
 #### Agregar Evento al Calendario
 ```bash
-curl -X POST http://localhost:3000/api/users/calendar \
+curl -X POST http://localhost:3000/api/v1/calendar \
   -H "Authorization: Bearer <tu_token_jwt>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -196,13 +196,13 @@ curl -X POST http://localhost:3000/api/users/calendar \
 
 #### Obtener Eventos del Calendario
 ```bash
-curl -X GET http://localhost:3000/api/users/calendar \
+curl -X GET http://localhost:3000/api/v1/calendar \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
 #### Eliminar Evento del Calendario
 ```bash
-curl -X DELETE http://localhost:3000/api/users/calendar/1 \
+curl -X DELETE http://localhost:3000/api/v1/calendar/1 \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
@@ -278,7 +278,7 @@ curl -X DELETE http://localhost:3000/api/users/calendar/1 \
 ### 1. Registro y Login
 ```bash
 # 1. Registrar usuario
-curl -X POST http://localhost:3000/api/users \
+curl -X POST http://localhost:3000/api/v1/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "María García",
@@ -287,7 +287,7 @@ curl -X POST http://localhost:3000/api/users \
   }'
 
 # 2. Hacer login y obtener token
-curl -X POST http://localhost:3000/api/users/login \
+curl -X POST http://localhost:3000/api/v1/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "maria@example.com",
@@ -298,55 +298,55 @@ curl -X POST http://localhost:3000/api/users/login \
 ### 2. Explorar Municipios y Lugares
 ```bash
 # 1. Obtener todos los municipios
-curl -X GET http://localhost:3000/api/users/municipios
+curl -X GET http://localhost:3000/api/v1/municipios
 
 # 2. Obtener lugares de un municipio específico
-curl -X GET http://localhost:3000/api/users/municipios/1/places
+curl -X GET http://localhost:3000/api/v1/municipios/1/places
 
 # 3. Obtener detalles de un lugar específico
-curl -X GET http://localhost:3000/api/users/places/1
+curl -X GET http://localhost:3000/api/v1/places/1
 ```
 
 ### 3. Gestionar Favoritos
 ```bash
 # 1. Agregar lugar a favoritos
-curl -X POST http://localhost:3000/api/users/favorite-places \
+curl -X POST http://localhost:3000/api/v1/favorite-places \
   -H "Authorization: Bearer <tu_token_jwt>" \
   -H "Content-Type: application/json" \
   -d '{"place_id": 1}'
 
 # 2. Ver lugares favoritos
-curl -X GET http://localhost:3000/api/users/favorite-places \
+curl -X GET http://localhost:3000/api/v1/favorite-places \
   -H "Authorization: Bearer <tu_token_jwt>"
 
 # 3. Eliminar de favoritos
-curl -X DELETE http://localhost:3000/api/users/favorite-places/1 \
+curl -X DELETE http://localhost:3000/api/v1/favorite-places/1 \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
 ### 4. Marcar Lugares Visitados
 ```bash
 # 1. Marcar lugar como visitado
-curl -X POST http://localhost:3000/api/users/visited \
+curl -X POST http://localhost:3000/api/v1/visited \
   -H "Authorization: Bearer <tu_token_jwt>" \
   -H "Content-Type: application/json" \
   -d '{"place_id": 1}'
 
 # 2. Ver lugares visitados
-curl -X GET http://localhost:3000/api/users/visited \
+curl -X GET http://localhost:3000/api/v1/visited \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
 ### 5. Gestionar Calendario de Eventos
 ```bash
 # 1. Agregar evento al calendario
-curl -X POST http://localhost:3000/api/users/calendar \
+curl -X POST http://localhost:3000/api/v1/calendar \
   -H "Authorization: Bearer <tu_token_jwt>" \
   -H "Content-Type: application/json" \
   -d '{"event_id": 1}'
 
 # 2. Ver eventos del calendario
-curl -X GET http://localhost:3000/api/users/calendar \
+curl -X GET http://localhost:3000/api/v1/calendar \
   -H "Authorization: Bearer <tu_token_jwt>"
 ```
 
@@ -382,6 +382,82 @@ DATABASE_URL=postgresql://usuario:password@localhost:5432/municipios_app
 ```bash
 npm start
 ```
+
+## 📦 Estructura de la Base de Datos
+
+La base de datos utiliza PostgreSQL y está compuesta por las siguientes tablas principales:
+
+### Tabla: `users`
+| Columna    | Tipo         | Restricciones           | Descripción                |
+|------------|--------------|------------------------|----------------------------|
+| id         | SERIAL       | PRIMARY KEY            | Identificador único        |
+| name       | VARCHAR      | NOT NULL               | Nombre del usuario         |
+| email      | VARCHAR      | UNIQUE, NOT NULL       | Correo electrónico         |
+| password   | VARCHAR      | NOT NULL               | Contraseña hasheada        |
+
+### Tabla: `municipios`
+| Columna    | Tipo         | Restricciones           | Descripción                |
+|------------|--------------|------------------------|----------------------------|
+| id         | SERIAL       | PRIMARY KEY            | Identificador único        |
+| name       | VARCHAR      | NOT NULL               | Nombre del municipio       |
+| slogan     | VARCHAR      |                        | Lema o descripción breve   |
+| created_at | TIMESTAMP    | DEFAULT now()          | Fecha de creación          |
+| updated_at | TIMESTAMP    | DEFAULT now()          | Fecha de actualización     |
+
+### Tabla: `places`
+| Columna       | Tipo      | Restricciones           | Descripción                |
+|---------------|-----------|------------------------|----------------------------|
+| id            | SERIAL    | PRIMARY KEY            | Identificador único        |
+| name          | VARCHAR   | NOT NULL               | Nombre del lugar           |
+| description   | TEXT      | NOT NULL               | Descripción                |
+| location      | VARCHAR   | NOT NULL               | Ubicación                  |
+| image         | VARCHAR   | NOT NULL               | URL de imagen              |
+| municipio_id  | INTEGER   | FOREIGN KEY            | Municipio al que pertenece |
+| created_at    | TIMESTAMP | DEFAULT now()          | Fecha de creación          |
+| updated_at    | TIMESTAMP | DEFAULT now()          | Fecha de actualización     |
+
+### Tabla: `events`
+| Columna       | Tipo      | Restricciones           | Descripción                |
+|---------------|-----------|------------------------|----------------------------|
+| id            | SERIAL    | PRIMARY KEY            | Identificador único        |
+| name          | VARCHAR   | NOT NULL               | Nombre del evento          |
+| description   | TEXT      | NOT NULL               | Descripción                |
+| start_date    | DATE      | NOT NULL               | Fecha de inicio            |
+| end_date      | DATE      |                        | Fecha de fin (opcional)    |
+| image         | VARCHAR   | NOT NULL               | URL de imagen              |
+| location      | VARCHAR   | NOT NULL               | Ubicación                  |
+| municipio_id  | INTEGER   | FOREIGN KEY            | Municipio al que pertenece |
+| created_at    | TIMESTAMP | DEFAULT now()          | Fecha de creación          |
+| updated_at    | TIMESTAMP | DEFAULT now()          | Fecha de actualización     |
+
+### Tabla: `favorite_places`
+| Columna    | Tipo      | Restricciones           | Descripción                |
+|------------|-----------|------------------------|----------------------------|
+| user_id    | INTEGER   | FOREIGN KEY            | Usuario                    |
+| place_id   | INTEGER   | FOREIGN KEY            | Lugar favorito             |
+| PRIMARY KEY(user_id, place_id) |                |                            |
+
+### Tabla: `favorite_events`
+| Columna    | Tipo      | Restricciones           | Descripción                |
+|------------|-----------|------------------------|----------------------------|
+| user_id    | INTEGER   | FOREIGN KEY            | Usuario                    |
+| event_id   | INTEGER   | FOREIGN KEY            | Evento favorito            |
+| PRIMARY KEY(user_id, event_id) |                |                            |
+
+### Tabla: `visited`
+| Columna      | Tipo      | Restricciones           | Descripción                |
+|--------------|-----------|------------------------|----------------------------|
+| user_id      | INTEGER   | FOREIGN KEY            | Usuario                    |
+| place_id     | INTEGER   | FOREIGN KEY            | Lugar visitado             |
+| visited_date | TIMESTAMP | DEFAULT now()          | Fecha de visita            |
+| PRIMARY KEY(user_id, place_id) |                |                            |
+
+### Tabla: `calendar`
+| Columna    | Tipo      | Restricciones           | Descripción                |
+|------------|-----------|------------------------|----------------------------|
+| user_id    | INTEGER   | FOREIGN KEY            | Usuario                    |
+| event_id   | INTEGER   | FOREIGN KEY            | Evento en calendario       |
+| PRIMARY KEY(user_id, event_id) |                |                            |
 
 ## Base de Datos
 
